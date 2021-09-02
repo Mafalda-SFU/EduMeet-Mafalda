@@ -1,3 +1,7 @@
+import {equal} from 'assert/strict'
+import mafalda from "@mafalda/mafalda"
+
+
 const EventEmitter = require('events').EventEmitter;
 const AwaitQueue = require('awaitqueue');
 const axios = require('axios');
@@ -7,6 +11,25 @@ const { SocketTimeoutError } = require('./errors');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const userRoles = require('../userRoles');
+
+///////////////////////////////////// START /////////////////////////////////////////
+let mafaldaRouters
+let resourceUsages
+let routers
+let transports
+let workers
+
+({ mafaldaRouters, routers, transports, workers } = mafalda)
+
+equal(mafaldaRouters.size, 0);
+equal(routers.size, 0);
+equal(transports.size, 0);
+equal(workers.size, 0);
+
+resourceUsages = await mafalda.getResourceUsages();
+
+equal(Object.keys(resourceUsages).length, 0)
+/////////////////////////////////////// END /////////////////////////////////////////
 
 const {
 	BYPASS_ROOM_LOCK,
@@ -64,7 +87,7 @@ const ROUTER_SCALE_SIZE = config.routerScaleSize || 40;
 class Room extends EventEmitter
 {
 
-	static getLeastLoadedRouter(mediasoupWorkers, peers, mediasoupRouters)
+	static getLeastLoadedRouter(workers, peers, mediasoupRouters)
 	{
 
 		const routerLoads = new Map();
@@ -95,7 +118,7 @@ class Room extends EventEmitter
 			}
 		}
 
-		for (const worker of mediasoupWorkers)
+		for (const worker of workers)
 		{
 			for (const router of worker._routers)
 			{
@@ -123,7 +146,7 @@ class Room extends EventEmitter
 		{
 			const workerId = sortedWorkerLoads.keys().next().value;
 
-			for (const worker of mediasoupWorkers)
+			for (const worker of workers)
 			{
 				if (worker._pid === workerId)
 				{
@@ -144,7 +167,7 @@ class Room extends EventEmitter
 			// find if there is a piped router that is on a worker that is below limit
 			for (const [ workerId, workerLoad ] of sortedWorkerLoads.entries())
 			{
-				for (const worker of mediasoupWorkers)
+				for (const worker of workers)
 				{
 					if (worker._pid === workerId)
 					{
@@ -169,7 +192,7 @@ class Room extends EventEmitter
 			// no piped router found, we need to return router from least loaded worker
 			const workerId = sortedWorkerLoads.keys().next().value;
 
-			for (const worker of mediasoupWorkers)
+			for (const worker of workers)
 			{
 				if (worker._pid === workerId)
 				{
@@ -203,17 +226,19 @@ class Room extends EventEmitter
 		// Router media codecs.
 		const mediaCodecs = config.mediasoup.router.mediaCodecs;
 
-		const mediasoupRouters = new Map();
+		const mediasoupRouters = mafaldaRouters;
 
-		for (const worker of mediasoupWorkers)
+		for (const worker of workers)
 		{
-			const router = await worker.createRouter({ mediaCodecs });
+			// const router = await worker.createRouter({ mediaCodecs });
+			const mafaldaRouter = await mafalda.createMafaldaRouter({ mediaCodecs });
 
-			mediasoupRouters.set(router.id, router);
+			// mediasoupRouters.set(router.id, router);
+			mediasoupRouters.set(mafaldaRouter.id, mafaldaRouter);
 		}
 
 		const firstRouter = mediasoupRouters.get(Room.getLeastLoadedRouter(
-			mediasoupWorkers, peers, mediasoupRouters));
+			workers, peers, mediasoupRouters));
 
 		// Create a mediasoup AudioLevelObserver on first router
 		const audioLevelObserver = await firstRouter.createAudioLevelObserver(
@@ -223,11 +248,23 @@ class Room extends EventEmitter
 				interval   : 800
 			});
 
+		resourceUsages = await mafalda.getResourceUsages();
+
+		equal(mafaldaRouters.get(mafaldaRouter.id), mafaldaRouter);
+		equal(routers.size, 1);
+		equal(transports.size, 1);
+		equal(transports.get(transport.id), transport);
+		equal(workers.size, 1);
+
+		resourceUsages = await mafalda.getResourceUsages();
+
+		equal(Object.keys(resourceUsages).length, 1)
+
 		return new Room({
 			roomId,
 			mediasoupRouters,
 			audioLevelObserver,
-			mediasoupWorkers,
+			workers,
 			peers
 		});
 	}
@@ -236,7 +273,7 @@ class Room extends EventEmitter
 		roomId,
 		mediasoupRouters,
 		audioLevelObserver,
-		mediasoupWorkers,
+		workers,
 		peers
 	})
 	{
@@ -247,7 +284,7 @@ class Room extends EventEmitter
 
 		this._uuid = uuidv4();
 
-		this._mediasoupWorkers = mediasoupWorkers;
+		this._workers = workers;
 
 		this._allPeers = peers;
 
@@ -340,11 +377,13 @@ class Room extends EventEmitter
 
 		this._allPeers = null;
 
-		this._mediasoupWorkers = null;
+		this._workers = null;
 
 		this._mediasoupRouters.clear();
 
 		this._audioLevelObserver = null;
+
+		await mafalda.closeAllMafaldaRouters();
 
 		// Emit 'close' event.
 		this.emit('close');
@@ -932,9 +971,10 @@ class Room extends EventEmitter
 					webRtcTransportOptions.preferUdp = true;
 				}
 
-				const transport = await router.createWebRtcTransport(
-					webRtcTransportOptions
-				);
+				// const transport = await router.createWebRtcTransport(
+				// 	webRtcTransportOptions
+				// );
+				const transport = await router.createDirectTransport();
 
 				transport.on('dtlsstatechange', (dtlsState) =>
 				{
@@ -2091,7 +2131,7 @@ class Room extends EventEmitter
 	async _getRouterId()
 	{
 		const routerId = Room.getLeastLoadedRouter(
-			this._mediasoupWorkers, this._allPeers, this._mediasoupRouters);
+			this._workers, this._allPeers, this._mediasoupRouters);
 
 		await this._pipeProducersToRouter(routerId);
 

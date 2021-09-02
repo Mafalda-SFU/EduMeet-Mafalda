@@ -153,7 +153,7 @@ async function run()
 		}
 
 		// Run a mediasoup Worker.
-		await runMediasoupWorkers();
+		// await runMediasoupWorkers();
 
 		// Run HTTPS server.
 		await runHttpsServer();
