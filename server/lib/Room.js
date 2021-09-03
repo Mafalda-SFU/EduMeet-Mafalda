@@ -1,4 +1,3 @@
-import {equal} from 'assert/strict'
 import mafalda from "@mafalda/mafalda"
 
 
@@ -15,20 +14,14 @@ const userRoles = require('../userRoles');
 ///////////////////////////////////// START /////////////////////////////////////////
 let mafaldaRouters
 let resourceUsages
+// @TODO: routers and transports are not used anywhere as of now.
 let routers
 let transports
 let workers
 
 ({ mafaldaRouters, routers, transports, workers } = mafalda)
 
-equal(mafaldaRouters.size, 0);
-equal(routers.size, 0);
-equal(transports.size, 0);
-equal(workers.size, 0);
-
 resourceUsages = await mafalda.getResourceUsages();
-
-equal(Object.keys(resourceUsages).length, 0)
 /////////////////////////////////////// END /////////////////////////////////////////
 
 const {
@@ -237,6 +230,7 @@ class Room extends EventEmitter
 			mediasoupRouters.set(mafaldaRouter.id, mafaldaRouter);
 		}
 
+		// @TODO: How do I fetch the first router here?
 		const firstRouter = mediasoupRouters.get(Room.getLeastLoadedRouter(
 			workers, peers, mediasoupRouters));
 
@@ -249,16 +243,6 @@ class Room extends EventEmitter
 			});
 
 		resourceUsages = await mafalda.getResourceUsages();
-
-		equal(mafaldaRouters.get(mafaldaRouter.id), mafaldaRouter);
-		equal(routers.size, 1);
-		equal(transports.size, 1);
-		equal(transports.get(transport.id), transport);
-		equal(workers.size, 1);
-
-		resourceUsages = await mafalda.getResourceUsages();
-
-		equal(Object.keys(resourceUsages).length, 1)
 
 		return new Room({
 			roomId,
@@ -971,10 +955,9 @@ class Room extends EventEmitter
 					webRtcTransportOptions.preferUdp = true;
 				}
 
-				// const transport = await router.createWebRtcTransport(
-				// 	webRtcTransportOptions
-				// );
-				const transport = await router.createDirectTransport();
+				const transport = await router.createWebRtcTransport(
+					webRtcTransportOptions
+				);
 
 				transport.on('dtlsstatechange', (dtlsState) =>
 				{
@@ -2130,6 +2113,7 @@ class Room extends EventEmitter
 
 	async _getRouterId()
 	{
+		// @TODO: How do I fetch a router here?
 		const routerId = Room.getLeastLoadedRouter(
 			this._workers, this._allPeers, this._mediasoupRouters);
 
