@@ -221,6 +221,9 @@ class Room extends EventEmitter
 
 		const mediasoupRouters = mafaldaRouters;
 
+		let first = true;
+		let audioLevelObserver = null;
+
 		for (const worker of workers)
 		{
 			// const router = await worker.createRouter({ mediaCodecs });
@@ -228,19 +231,28 @@ class Room extends EventEmitter
 
 			// mediasoupRouters.set(router.id, router);
 			mediasoupRouters.set(mafaldaRouter.id, mafaldaRouter);
+
+			if (first) {
+				audioLevelObserver = await mafaldaRouter.createAudioLevelObserver(
+					{
+						maxEntries : 1,
+						threshold  : -80,
+						interval   : 800
+					});
+			}
 		}
 
-		// @TODO: How do I fetch the first router here?
-		const firstRouter = mediasoupRouters.get(Room.getLeastLoadedRouter(
-			workers, peers, mediasoupRouters));
+		// // @TODO: How do I fetch the first router here?
+		// const firstRouter = mediasoupRouters.get(Room.getLeastLoadedRouter(
+		// 	workers, peers, mediasoupRouters));
 
-		// Create a mediasoup AudioLevelObserver on first router
-		const audioLevelObserver = await firstRouter.createAudioLevelObserver(
-			{
-				maxEntries : 1,
-				threshold  : -80,
-				interval   : 800
-			});
+		// // Create a mediasoup AudioLevelObserver on first router
+		// const audioLevelObserver = await firstRouter.createAudioLevelObserver(
+		// 	{
+		// 		maxEntries : 1,
+		// 		threshold  : -80,
+		// 		interval   : 800
+		// 	});
 
 		resourceUsages = await mafalda.getResourceUsages();
 
@@ -2113,7 +2125,7 @@ class Room extends EventEmitter
 
 	async _getRouterId()
 	{
-		// @TODO: How do I fetch a router here?
+		// @TODO: How do I get a router ID here?
 		const routerId = Room.getLeastLoadedRouter(
 			this._workers, this._allPeers, this._mediasoupRouters);
 
