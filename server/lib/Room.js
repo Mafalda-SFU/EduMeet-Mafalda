@@ -2125,9 +2125,11 @@ class Room extends EventEmitter
 
 	async _getRouterId()
 	{
-		// @TODO: How do I get a router ID here?
-		const routerId = Room.getLeastLoadedRouter(
-			this._workers, this._allPeers, this._mediasoupRouters);
+		// // @TODO: How do I get a router ID here?
+		// const routerId = Room.getLeastLoadedRouter(
+		// 	this._workers, this._allPeers, this._mediasoupRouters);
+
+		const routerId = mafaldaRouters[0].get('id');
 
 		await this._pipeProducersToRouter(routerId);
 
