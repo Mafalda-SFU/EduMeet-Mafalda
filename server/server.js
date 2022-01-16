@@ -29,7 +29,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
-const mediasoup = require('mediasoup');
 const AwaitQueue = require('awaitqueue');
 const base64 = require('base-64');
 const helmet = require('helmet');
@@ -147,10 +146,12 @@ let localStrategy;
 
 async function run()
 {
+	const mediasoup = require('mediasoup');
+
 	try
 	{
 		// Open the interactive server.
-		await interactiveServer(rooms, peers);
+		await interactiveServer(mediasoup, rooms, peers);
 
 		if (typeof (config.auth) === 'undefined')
 		{
@@ -162,7 +163,7 @@ async function run()
 		}
 
 		// Run a mediasoup Worker.
-		await runMediasoupWorkers();
+		await runMediasoupWorkers(mediasoup);
 
 		// Run HTTPS server.
 		await runHttpsServer();
@@ -834,7 +835,7 @@ async function runWebSocketServer()
 /**
  * Launch as many mediasoup Workers as given in the configuration file.
  */
-async function runMediasoupWorkers()
+async function runMediasoupWorkers(mediasoup)
 {
 	mediasoup.observer.on('newworker', (worker) =>
 	{
