@@ -4,7 +4,6 @@ const repl = require('repl');
 const readline = require('readline');
 const net = require('net');
 const fs = require('fs');
-const mediasoup = require('mediasoup');
 const colors = require('colors/safe');
 const pidusage = require('pidusage');
 
@@ -595,7 +594,7 @@ class Interactive
 	}
 }
 
-function runMediasoupObserver()
+function runMediasoupObserver(mediasoup)
 {
 	mediasoup.observer.on('newworker', (worker) =>
 	{
@@ -661,12 +660,12 @@ function runMediasoupObserver()
 	});
 }
 
-module.exports = async function(rooms, peers)
+module.exports = async function(mediasoup, rooms, peers)
 {
 	try
 	{
 		// Run the mediasoup observer API.
-		runMediasoupObserver();
+		runMediasoupObserver(mediasoup);
 
 		// Make maps global so they can be used during the REPL terminal.
 		global.rooms = rooms;
