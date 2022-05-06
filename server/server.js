@@ -2,6 +2,8 @@
 
 process.title = 'edumeet-server';
 
+import MediasoupVertical from '@mafalda-sfu/mediasoup-vertical';
+
 import Logger from './lib/logger/Logger';
 const Room = require('./lib/Room');
 const Peer = require('./lib/Peer');
@@ -146,7 +148,26 @@ let localStrategy;
 
 async function run()
 {
-	const mediasoup = require('mediasoup');
+	const getStatsFactory = require('@mafalda-sfu/mediasoup-getstats-factory');
+	const mediasoupOrig = require('mediasoup');
+
+	const { close, getStats } = await getStatsFactory(mediasoupOrig);
+
+	const mediasoupVertical = new MediasoupVertical(
+		{ getStats, mediasoup: mediasoupOrig }, config.mediasoupVertical
+	)
+		.on('error', logger.error);
+
+	function onProcessSignal()
+	{
+		mediasoupVertical.destroy();
+		close();
+	}
+
+	process.once('SIGINT', onProcessSignal);
+	process.once('SIGTERM', onProcessSignal);
+
+	const { mediasoup } = mediasoupVertical;
 
 	try
 	{
