@@ -2,6 +2,10 @@
 
 process.title = 'edumeet-server';
 
+import { once } from 'events';
+
+import RemoteMediasoupClient from '@mafalda-sfu/remote-mediasoup-client-mock';
+
 import Logger from './lib/logger/Logger';
 const Room = require('./lib/Room');
 const Peer = require('./lib/Peer');
@@ -144,9 +148,22 @@ let oidcStrategy;
 let samlStrategy;
 let localStrategy;
 
+function onConnectionFailure(error)
+{
+	logger.error('Error connecting to Remote Mediasoup server:', error);
+
+	process.exit(1);
+}
+
 async function run()
 {
-	const mediasoup = require('mediasoup');
+	const client = new RemoteMediasoupClient(config.remoteMediasoupUrl);
+
+	await once(client, 'connected').catch(onConnectionFailure);
+
+	client.on('error', logger.error);
+
+	const { mediasoup } = client;
 
 	try
 	{
