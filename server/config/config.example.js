@@ -51,11 +51,11 @@ module.exports =
 			// issuerURL + '/.well-known/openid-configuration'
 
 			// e.g. google OIDC config
-			// Follow this guide to get credential:  
+			// Follow this guide to get credential:
 			// https://developers.google.com/identity/protocols/oauth2/openid-connect
 			// use this issuerURL
 			// issuerURL     : 'https://accounts.google.com/',
-			
+
 			issuerURL     : 'https://example.com',
 			clientOptions :
 			{
@@ -69,7 +69,7 @@ module.exports =
 			HttpOptions   :
 			{
   				timeout: 5000,
-				agent: 
+				agent:
 				{
                 	https:tunnel.httpsOverHttp({
                            proxy: {
@@ -307,7 +307,7 @@ module.exports =
 	},
 	// Array of permissions. If no peer with the permission in question
 	// is in the room, all peers are permitted to do the action. The peers
-	// that are allowed because of this rule will not be able to do this 
+	// that are allowed because of this rule will not be able to do this
 	// action as soon as a peer with the permission joins. In this example
 	// everyone will be able to lock/unlock room until a MODERATOR joins.
 	allowWhenRoleMissing : [ CHANGE_ROOM_LOCK ]
