@@ -492,7 +492,7 @@ class Room extends EventEmitter
 		});
 
 		// If nobody left in lobby we should check if room is empty too and initiating
-		// rooms selfdestruction sequence  
+		// rooms selfdestruction sequence
 		this._lobby.on('lobbyEmpty', () =>
 		{
 			if (this.checkEmpty())
@@ -858,7 +858,7 @@ class Room extends EventEmitter
 		if (this.checkEmpty() && this._lobby.checkEmpty())
 			this.selfDestructCountdown();
 		// If this is the last Peer in the room,
-		// lobby is not empty and room is locked, 
+		// lobby is not empty and room is locked,
 		// close the room after a while.
 		else if (this.checkEmpty() && !this._lobby.checkEmpty() && this.isLocked())
 		{
