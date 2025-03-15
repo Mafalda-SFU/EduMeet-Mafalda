@@ -357,7 +357,7 @@ const Peer = (props) =>
 			if (screenConsumer)
 				consumers.push(screenConsumer);
 
-			extraVideoConsumers.map((consumer) =>
+			extraVideoConsumers.forEach((consumer) =>
 			{
 				consumers.push(consumer);
 			});
