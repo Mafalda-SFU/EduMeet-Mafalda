@@ -253,6 +253,11 @@ const configSchema = convict({
 		default : 3
 	},
 	// Mediasoup settings
+	mediasoupHorizontalClients: {
+		doc     : 'URLs of the Remote Mediasoup server.',
+		format  : Array,
+		default : []
+	},
 	mediasoup :
 	{
 		numWorkers : {
