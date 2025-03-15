@@ -65,7 +65,7 @@
 		"redux-persist-transform-filter": "0.0.20",
 		"redux-thunk": "^2.3.0",
 		"reselect": "^4.0.0",
-		"riek": "^1.1.0",
+		"riek": "github:baklazaner/riek",
 		"socket.io-client": "^2.4.0",
 		"source-map-explorer": "^2.1.0",
 		"streamsaver": "^2.0.5",
