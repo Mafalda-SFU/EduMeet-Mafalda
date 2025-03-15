@@ -24,6 +24,7 @@
 		"gen-config-docs": "ts-node utils/gen-config-docs.ts"
 	},
 	"dependencies": {
+		"@mafalda-sfu/remote-mediasoup-client": "file:mafalda-sfu-remote-mediasoup-client-3.15.7-7.tgz",
 		"awaitqueue": "^1.0.0",
 		"axios": "^0.21.1",
 		"base-64": "^0.1.0",
@@ -44,7 +45,6 @@
 		"ims-lti": "^3.0.2",
 		"json5": "^2.2.0",
 		"jsonwebtoken": "^8.5.1",
-		"mediasoup": "^3.15.6",
 		"openid-client": "^3.7.3",
 		"passport": "^0.7.0",
 		"passport-local": "^1.0.0",
