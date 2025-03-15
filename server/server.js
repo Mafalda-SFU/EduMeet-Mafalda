@@ -2,6 +2,11 @@
 
 process.title = 'edumeet-server';
 
+import { once } from 'node:events';
+
+import MediasoupHorizontal from '@mafalda-sfu/mediasoup-horizontal';
+import RemoteMediasoupClient from '@mafalda-sfu/remote-mediasoup-client';
+
 import Logger from './lib/logger/Logger';
 const Room = require('./lib/Room');
 const Peer = require('./lib/Peer');
@@ -144,9 +149,37 @@ let oidcStrategy;
 let samlStrategy;
 let localStrategy;
 
+function newClient(url)
+{
+	return new RemoteMediasoupClient(url, { listenWorkerDied: false });
+}
+
+function onConnectionFailure(error)
+{
+	logger.error('Error connecting to Remote Mediasoup servers:', error);
+
+	process.exit(1);
+}
+
 async function run()
 {
-	const mediasoup = require('mediasoup');
+	const clients = config.mediasoupHorizontalClients.map(newClient);
+
+	const mediasoupHorizontal = new MediasoupHorizontal(clients);
+
+	function onProcessSignal()
+	{
+		for (const client of clients) client.destroy();
+
+		mediasoupHorizontal.destroy();
+	}
+
+	process.once('SIGINT', onProcessSignal);
+	process.once('SIGTERM', onProcessSignal);
+
+	await once(mediasoupHorizontal, 'mediasoup').catch(onConnectionFailure);
+
+	const { mediasoup } = mediasoupHorizontal.on('error', logger.error);
 
 	try
 	{
